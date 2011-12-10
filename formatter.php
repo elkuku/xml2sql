@@ -15,6 +15,6 @@ abstract class Xml2SqlFormatter
 
     abstract public function formatCreate(SimpleXMLElement $create, array $options = array());
 
-	abstract public function formatInsert(SimpleXMLElement $insert, array $options = array());
+    abstract public function formatInsert(SimpleXMLElement $insert, array $options = array());
 
 }//class
