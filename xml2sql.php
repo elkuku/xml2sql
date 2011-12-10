@@ -28,95 +28,99 @@ require 'formatter.php';
 JError::$legacy = false;
 
 /**
- * Ian's PullTester
+ * XML2SQL
  */
 class XML2SQL extends JCli
 {
-	/**
-	 * @var Xml2SqlFormatter
-	 */
-	private $formatter = null;
+    /**
+     * @var Xml2SqlFormatter
+     */
+    private $formatter = null;
 
-	/**
-	 * Execute the application.
-	 *
-	 * @return  void
-	 */
-	public function execute()
-	{
-		$input = $this->input->get('i', '', 'string');
-		$output = $this->input->get('o', '', 'string');
-		$format = $this->input->get('format');
+    /**
+     * Execute the application.
+     *
+     * @return  void
+     */
+    public function execute()
+    {
+        $input = $this->input->get('i', '', 'string');
+        $output = $this->input->get('o', '', 'string');
+        $format = $this->input->get('format');
 
-		$this->out('|-------------------------|');
-		$this->out('|          XML2SQL        |');
-		$this->out('|                         |');
-		$this->out('|   2011 by NiK (elkuku)  |');
-		$this->out('|-------------------------|');
-		$this->out();
+        $this->out('|-------------------------|');
+        $this->out('|          XML2SQL        |');
+        $this->out('|                         |');
+        $this->out('|   2011 by NiK (elkuku)  |');
+        $this->out('|-------------------------|');
+        $this->out();
 
-		$this->out('Input:  '.$input);
-		$this->out('Output: '.$output);
-		$this->out();
+        if( ! $input || ! $output || ! $format)
+        throw new Exception('Missing values. Usage: -i <inputfile> -o <outputfile> --format <format>', 1);
 
-		if( ! $input || ! $output || ! $format)
-		throw new Exception('Missing values. Use -i <inputfile> -o <outputfile> --format <format>', 1);
+        $this->out('Input:  '.$input);
+        $this->out('Output: '.$output);
+        $this->out();
 
-		$path = JPATH_BASE.'/formats/'.$format.'.php';
+        $path = JPATH_BASE.'/formats/'.$format.'.php';
 
-		if( ! file_exists($path))
-		throw new Exception('Format file not found: '.$path, 1);
+        if( ! file_exists($path))
+        throw new Exception('Format file not found: '.$path, 1);
 
-		require $path;
+        require $path;
 
-		$className = 'Xml2Sql'.ucfirst($format);
+        $className = 'Xml2SqlFormat'.ucfirst($format);
 
-		if( ! class_exists($className))
-		throw new Exception(sprintf('Required class "%2$s" not found in file %2$s', $className, $path), 1);
+        if( ! class_exists($className))
+        throw new Exception(sprintf('Required class "%1$s" not found in file %2$s', $className, $path), 1);
 
-		$options = array(
-			'prefix' => 'zfyg0_',//@todo..
-		);
+        $prefix = $this->input->get('prefix', 'xxxxx_');
 
-		$this->formatter = new $className($options);
+        $options = array(
+			'prefix' => $prefix,
+        );
 
-		$xml = simplexml_load_file($input);
+        $this->formatter = new $className($options);
 
-		if( ! $xml)
-		throw new Exception('Invalid xml file: '.$input, 1);
+        $xml = simplexml_load_file($input);
 
-		$sql = '';
+        if( ! $xml)
+        throw new Exception('Invalid xml file: '.$input, 1);
 
-		foreach ($xml->database->table_structure as $create)
-		{
-			$sql .= $this->formatter->formatCreate($create);
-		}//foreach
+        $sql = '';
 
-		foreach ($xml->database->table_data as $insert)
-		{
-			$sql .= $this->formatter->formatInsert($insert);
-		}//foreach
+        //-- Process "CREATE TABLE" stanetments
+        foreach ($xml->database->table_structure as $create)
+        {
+            $sql .= $this->formatter->formatCreate($create);
+        }//foreach
 
-		if( ! JFile::write($output, $sql))
-		throw new Exception('Unable to generate the output file at: '.$output, 1);
+        //-- Process "INSERT" statements
+        foreach ($xml->database->table_data as $insert)
+        {
+            $sql .= $this->formatter->formatInsert($insert);
+        }//foreach
 
-		$this->out('Finished =;)');
-		$this->out();
-	}//function
+        if( ! JFile::write($output, $sql))
+        throw new Exception('Unable to generate the output file at: '.$output, 1);
+
+        $this->out('Finished =;)');
+        $this->out();
+    }//function
 
 }//class
 
 try
 {
-	// Execute the application.
-	JCli::getInstance('XML2SQL')->execute();
+    // Execute the application.
+    JCli::getInstance('XML2SQL')->execute();
 
-	exit(0);
+    exit(0);
 }
 catch (Exception $e)
 {
-	// An exception has been caught, just echo the message.
-	fwrite(STDOUT, $e->getMessage() . "\n");
+    // An exception has been caught, just echo the message.
+    fwrite(STDOUT, $e->getMessage() . "\n");
 
-	exit($e->getCode());
+    exit($e->getCode());
 }//try
