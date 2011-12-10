@@ -1,112 +1,128 @@
 <?php
-class Xml2SqlSQLite extends Xml2SqlFormatter
+class Xml2SqlFormatSQLite extends Xml2SqlFormatter
 {
-	public function formatCreate(SimpleXMLElement $create, array $options = array())
-	{
-		$options = new JRegistry($options);
+    public function formatCreate(SimpleXMLElement $create, array $options = array())
+    {
+        $options = new JRegistry($options);
 
-		$tableName = (string)$create->attributes()->name;
+        $tableName = (string)$create->attributes()->name;
 
-		$tableName = str_replace($this->prefix, '#__', $tableName);
+        $tableName = str_replace($this->prefix, '#__', $tableName);
 
-		$s = array();
+        $fields = array();
 
-		$s[] = '';
-		$s[] = '-- Table structure for table '.$tableName;
-		$s[] = '';
+        $primaryKeySet = false;
 
-		$s[] = 'CREATE TABLE IF NOT EXISTS '.$tableName.' (';
+        foreach ($create->field as $field)
+        {
+            $attribs = $field->attributes();
 
-		$fields = array();
+            $as = array();
 
-		foreach ($create->field as $field)
-		{
-			$attribs = $field->attributes();
+            $as[] = $attribs->Field;
 
-			$as = array();
+            $type = $attribs->Type;
+            $type = str_replace(' unsigned', '', $type);
 
-			$as[] = $attribs->Field;
+            if(0 === strpos($type, 'int'))
+            $type = 'INTEGER';
 
-			$type = $attribs->Type;
-			$type = str_replace(' unsigned', '', $type);
+            $as[] = $type;
 
-			$as[] = $type;
+            if('PRI' == (string) $attribs->Key
+            && ! $primaryKeySet)
+            {
+                $as[] = 'PRIMARY KEY';
+                $primaryKeySet = true;
+            }
 
-			if('PRI' == (string) $attribs->Key)
-			$as[] = 'PRIMARY KEY';
+            if('NO' == (string) $attribs->Null
+            && 'auto_increment' != (string)$attribs->Extra)
+            $as[] = 'NOT NULL';
 
-			if('NO' == (string) $attribs->Null
-			&& 'auto_increment' != (string)$attribs->Extra)
-			$as[] = 'NOT NULL';
+            $default = (string) $attribs->Default;
 
-			$default = (string) $attribs->Default;
+            if('' != $default)
+            $as[] = "DEFAULT '$default'";
 
-			if('' != $default)
-			$as[] = "DEFAULT '$default'";
+            if('auto_increment' == (string)$attribs->Extra)
+            $as[] = 'AUTOINCREMENT';
 
-			if('auto_increment' == (string)$attribs->Extra)
-			$as[] = 'AUTOINCREMENT';
+            $fields[] = implode(' ', $as);
+        }//foreach
 
-			$fields[] = implode(' ', $as);
-		}//foreach
+        $s = array();
 
-		$s[] = implode(",\n", $fields);
+        $s[] = '';
+        $s[] = '-- Table structure for table '.$tableName;
+        $s[] = '';
+        $s[] = 'CREATE TABLE IF NOT EXISTS '.$tableName.' (';
+        $s[] = implode(",\n", $fields);
+        $s[] = ');';
 
-		$s[] = ');';
+        return implode("\n", $s);
+    }//function
 
-		$s[] = '';
+    public function formatInsert(SimpleXMLElement $insert, array $options = array())
+    {
+        if( ! isset($insert->row->field))
+        return '';
 
-		return implode("\n", $s);
-	}//function
+        $options = new JRegistry($options);
 
-	public function formatInsert(SimpleXMLElement $insert, array $options = array())
-	{
-		if( ! isset($insert->row->field))
-		return '';
+        $tableName = (string)$insert->attributes()->name;
 
-		$options = new JRegistry($options);
+        $tableName = str_replace($this->prefix, '#__', $tableName);
 
-		$tableName = (string)$insert->attributes()->name;
+        $keys = array();
+        $values = array();
 
-		$tableName = str_replace($this->prefix, '#__', $tableName);
+        foreach ($insert->row->field as $field)
+        {
+            $keys[] = (string) $field->attributes()->name;
+        }//foreach
 
-		$s = array();
+        $s = array();
 
-		$s[] = '';
-		$s[] = '-- Table data for table '.$tableName;
-		$s[] = '';
+        $s[] = '';
+        $s[] = '-- Table data for table '.$tableName;
+        $s[] = '';
+        $s[] = 'INSERT INTO '.$tableName;
 
-		$keys = array();
+        $started = false;
 
-		foreach ($insert->row->field as $field)
-		{
-			$keys[] = (string) $field->attributes()->name;
-		}
+        foreach ($insert->row as $row)
+        {
+            $vs = array();
 
-		$s[] = 'INSERT INTO '.$tableName.' ('.implode(', ', $keys).')';
+            $i = 0;
 
-		$fields = array();
+            foreach ($row->field as $field)
+            {
+                // ''escape'' single quotes by prefixing them with another single quote
+                $f = str_replace("'", "''", (string) $field);
 
-		$values = array();
+                $vs[] =($started) ? "'".$f."'" : "'".$f."' AS ".$keys[$i++];
+            }//foreach
 
-		foreach ($insert->row as $row)
-		{
-			$vs = array();
-			foreach ($row->field as $field)
-			{
-				$vs[] = "'".(string) $field."'";
-			}//foreach
+            if( ! $started)
+            {
+                $s[] = '      SELECT '.implode(', ', $vs);
+            }
+            else
+            {
+                $s[] = 'UNION SELECT '.implode(', ', $vs);
+            }
+$started = true;
+//             $values[] = '('.implode(', ', $vs).')';
+        }//foreach
 
-			$values[] = '('.implode(', ', $vs).')';
-		}//foreach
+//         $s[] = ' ('.implode(', ', $keys).')';
+//         $s[] = 'VALUES';
+//         $s[] = implode(",\n", $values);
+        $s[] = ';';
 
-		$s[] = 'VALUES';
-
-		$s[] = implode(",\n", $values);
-
-		$s[] = ';';
-
-		return implode("\n", $s);
-	}//function
+        return implode("\n", $s);
+    }//function
 
 }//class
