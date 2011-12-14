@@ -36,9 +36,12 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
                 $primaryKeySet = true;
             }
 
-            if('NO' == (string) $attribs->Null
-            && 'auto_increment' != (string)$attribs->Extra)
-            $as[] = 'NOT NULL';
+            if(0)//@todo - we ditch NOT NULL for now,as SQLite is very strict about it :(
+            {
+                if('NO' == (string) $attribs->Null
+                && 'auto_increment' != (string)$attribs->Extra)
+                $as[] = 'NOT NULL';
+            }
 
             $default = (string) $attribs->Default;
 
