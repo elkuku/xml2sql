@@ -2,19 +2,49 @@
 abstract class Xml2SqlFormatter
 {
     /**
-     * @var string table prefix
+     * @var JRegistry
      */
-    protected $prefix = '';
+    protected $options;
 
+    protected $quoteString = '';
+
+    /**
+     * Constructor.
+     *
+     * @param array $options
+     */
     public function __construct(array $options = array())
     {
-        $options = new JRegistry($options);
-
-        $this->prefix = $options->get('prefix');
+        $this->options = new JRegistry($options);
     }//function
 
-    abstract public function formatCreate(SimpleXMLElement $create, array $options = array());
+    /**
+     * Format a SQL CREATE TABLE statement
+     *
+     * @param SimpleXMLElement $create The CREATE TABLE block
+     *
+     * @return string Formatted SQL statement
+     */
+    abstract public function formatCreate(SimpleXMLElement $create);
 
-    abstract public function formatInsert(SimpleXMLElement $insert, array $options = array());
+    /**
+     * Format a SQL INSERT statement
+     *
+     * @param SimpleXMLElement $insert The INSERT block
+     *
+     * @return string Formatted SQL statement
+     */
+    abstract public function formatInsert(SimpleXMLElement $insert);
 
+    /**
+     * Quote a string.
+     *
+     * @param string $string The string to quote
+     *
+     * @return string
+     */
+    protected function quote($string)
+    {
+        return $this->quoteString.$string.$this->quoteString;
+    }
 }//class
