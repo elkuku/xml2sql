@@ -80,15 +80,13 @@ class XML2SQL extends JCli
             }
         }
 
-
-
+        $this->out();
         $this->out('Finished =;)');
         $this->out();
     }//function
 
     private function createSql($input, $output, $format)
     {
-
         if( ! $input || ! $output || ! $format)
         throw new Exception('Missing values. Usage: -i <inputfile> -o <outputfile> --format <format>', 1);
 
