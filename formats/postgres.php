@@ -81,8 +81,8 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
 
                 if('' != $default)
                 {
-$default = str_replace('0000-00-00 00:00:00', '1970-01-01 00:00:00', $default);
-                $as[] = "DEFAULT '$default'";
+                    $default = str_replace('0000-00-00 00:00:00', '1970-01-01 00:00:00', $default);
+                    $as[] = "DEFAULT '$default'";
                 }
             }
 

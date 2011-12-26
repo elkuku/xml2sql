@@ -1,17 +1,33 @@
 <?php
+/**
+ * Format XML database dumps to SQLite format.
+ *
+ * @link http://www.sqlite.org/datatype3.html
+ */
 class Xml2SqlFormatSQLite extends Xml2SqlFormatter
 {
-    public function formatCreate(SimpleXMLElement $create, array $options = array())
-    {
-        $options = new JRegistry($options);
+    protected $quoteString = '';
 
+    /**
+     * (non-PHPdoc)
+     * @see Xml2SqlFormatter::formatCreate()
+     */
+    public function formatCreate(SimpleXMLElement $create)
+    {
         $tableName = (string)$create->attributes()->name;
 
-        $tableName = str_replace($this->prefix, '#__', $tableName);
+        $tableName = str_replace($this->options->get('prefix'), '#__', $tableName);
 
         $fields = array();
 
         $primaryKeySet = false;
+
+        $affinityTypes = array(
+            'INTEGER' => array('int'),
+            'TEXT' => array('char', 'text', 'clob'),
+            'NONE' => array('blob'),
+            'REAL' => array('real', 'floa', 'doub'),
+        );
 
         foreach ($create->field as $field)
         {
@@ -22,12 +38,36 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
             $as[] = $attribs->Field;
 
             $type = $attribs->Type;
+
             $type = str_replace(' unsigned', '', $type);
 
-            if(0 === strpos($type, 'int'))
-            $type = 'INTEGER';
+            $affinity = '';
 
-            $as[] = $type;
+            if( ! $affinity)
+            {
+                foreach ($affinityTypes as $aType => $cTypes)
+                {
+                    if($affinity)
+                    continue;
+
+                    foreach ($cTypes as $cType)
+                    {
+                        if(false !== strpos($type, $cType))
+                        {
+                            $affinity = $aType;
+
+                            continue 2;
+                        }
+                    }//foreach
+                }//foreach
+            }
+
+            if( ! $affinity)
+            {
+                $affinity = 'NUMERIC';
+            }
+
+            $as[] = $affinity;
 
             if('PRI' == (string) $attribs->Key
             && ! $primaryKeySet)
@@ -66,16 +106,18 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
         return implode("\n", $s);
     }//function
 
-    public function formatInsert(SimpleXMLElement $insert, array $options = array())
+    /**
+     * (non-PHPdoc)
+     * @see Xml2SqlFormatter::formatInsert()
+     */
+    public function formatInsert(SimpleXMLElement $insert)
     {
         if( ! isset($insert->row->field))
         return '';
 
-        $options = new JRegistry($options);
-
         $tableName = (string)$insert->attributes()->name;
 
-        $tableName = str_replace($this->prefix, '#__', $tableName);
+        $tableName = str_replace($this->options->get('prefix'), '#__', $tableName);
 
         $keys = array();
         $values = array();
@@ -116,13 +158,10 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
             {
                 $s[] = 'UNION SELECT '.implode(', ', $vs);
             }
-$started = true;
-//             $values[] = '('.implode(', ', $vs).')';
+
+            $started = true;
         }//foreach
 
-//         $s[] = ' ('.implode(', ', $keys).')';
-//         $s[] = 'VALUES';
-//         $s[] = implode(",\n", $values);
         $s[] = ';';
 
         return implode("\n", $s);

@@ -1,18 +1,20 @@
 <?php
+/**
+ * Format XML database dumps to MySQL format.
+ */
 class Xml2SqlFormatMySQL extends Xml2SqlFormatter
 {
-    protected function quote($string)
-    {
-        return '`'.$string.'`';
-    }
+    protected $quoteString = '`';
 
-    public function formatCreate(SimpleXMLElement $create, array $options = array())
+    /**
+     * (non-PHPdoc)
+     * @see Xml2SqlFormatter::formatCreate()
+     */
+    public function formatCreate(SimpleXMLElement $create)
     {
-        $options = new JRegistry($options);
-
         $tableName = (string)$create->attributes()->name;
 
-        $tableName = str_replace($this->prefix, '#__', $tableName);
+        $tableName = str_replace($this->options->get('prefix'), '#__', $tableName);
 
         $s = array();
 
@@ -30,14 +32,13 @@ class Xml2SqlFormatMySQL extends Xml2SqlFormatter
 
             $as = array();
 
-            $as[] = $attribs->Field;
+            $as[] = $this->quote($attribs->Field);
 
-            $type = $attribs->Type;
-            $type = str_replace(' unsigned', '', $type);
+            $type = (string)$attribs->Type;
 
             $as[] = $type;
 
-            if('PRI' == (string) $attribs->Key)
+            if('PRI' == (string)$attribs->Key)
             $as[] = 'PRIMARY KEY';
 
             if('NO' == (string) $attribs->Null
@@ -52,28 +53,77 @@ class Xml2SqlFormatMySQL extends Xml2SqlFormatter
             if('auto_increment' == (string)$attribs->Extra)
             $as[] = 'AUTO INCREMENT';
 
+            if((string)$attribs->Comment)
+            $as[] = 'COMMENT \''.$attribs->Comment.'\'';
+
             $fields[] = implode(' ', $as);
+        }//foreach
+
+        $primaries = array();
+        $uniques = array();
+//         $indices = array();
+        $keys = array();
+
+        foreach ($create->key as $key)
+        {
+            $n = (string)$key->attributes()->Key_name;
+            $c = (string)$key->attributes()->Column_name;
+
+            if('PRIMARY' == $n)
+            $primaries[] = $c;
+            elseif('0' == (string)$key->attributes()->Non_unique)
+            $uniques[$n][] = $c;
+//             elseif('1' == (string)$key->attributes()->Seq_in_index)
+//             $indices[$n][] = $c;
+            else
+            $keys[$n][] = $c;
         }//foreach
 
         $s[] = implode(",\n", $fields);
 
-        $s[] = ');';
+        if($primaries)
+        $s[] = 'PRIMARY KEY ('.$this->quote(implode($this->quoteString.','.$this->quoteString, $primaries)).'),';
+
+//         foreach ($indices as $kName => $columns)
+//         {
+//             $s[] = 'INDEX '.$this->quote($kName).' (`'.implode('`,`', $columns).'`),';
+//         }//foreach
+
+        foreach ($uniques as $kName => $columns)
+        {
+            $s[] = 'UNIQUE KEY '.$this->quote($kName)
+            .' ('.$this->quote(implode($this->quoteString.','.$this->quoteString, $columns)).'),';
+        }//foreach
+
+        foreach ($keys as $kName => $columns)
+        {
+            $s[] = 'KEY '.$this->quote($kName)
+            .' ('.$this->quote(implode($this->quoteString.','.$this->quoteString, $columns)).'),';
+        }//foreach
+
+        $collation = (string)$create->options->attributes()->Collation;
+
+        $collation =($collation) ? ' DEFAULT CHARSET='.$collation : '';
+
+        $s[] = ')'.$collation.';';
 
         $s[] = '';
 
         return implode("\n", $s);
     }//function
 
-    public function formatInsert(SimpleXMLElement $insert, array $options = array())
+    /**
+     * (non-PHPdoc)
+     * @see Xml2SqlFormatter::formatInsert()
+     */
+    public function formatInsert(SimpleXMLElement $insert)
     {
         if( ! isset($insert->row->field))
         return '';
 
-        $options = new JRegistry($options);
-
         $tableName = (string)$insert->attributes()->name;
 
-        $tableName = str_replace($this->prefix, '#__', $tableName);
+        $tableName = str_replace($this->options->get('prefix'), '#__', $tableName);
 
         $s = array();
 
