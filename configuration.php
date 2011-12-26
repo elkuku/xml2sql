@@ -12,6 +12,7 @@ class JConfig
     /* The "dummy" database that will be created to generate the XML export. Will be deleted when the script ends */
     public $db = 'aaatestdb';
 
+    public $dbprefix = '#__';
 
     /* Path to MySQL bin folder - empty for system default */
     public $mysqlpath = '/opt/lampp/bin';
