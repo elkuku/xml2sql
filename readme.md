@@ -4,8 +4,7 @@ Converts XML dumps (currently only from MySQL dumps) to SQL queries in different
 
 * http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_xml
 
-```--createall```
-Using the --createall option the script will do "allInOne (step)":
+Using the ```--createall``` option the script will do "allInOne (step)":
 
 1. Create a dummy database.
 2. Read a joomla.sql install file for MySQL and "install" it to the created database.
@@ -15,8 +14,8 @@ Using the --createall option the script will do "allInOne (step)":
 -- Supported formats: MySQL, SQLite, Postgres, ...
 
 ### Other options
-```-i <filename>``` Input file
-```-o <filename>``` Output file
-```--format <format>``` SQL output format (mysql, sqlite, postgres)
+* ```-i <filename>``` Input file
+* ```-o <filename>``` Output file
+* ```--format <format>``` SQL output format (mysql, sqlite, postgres)
 
-```--create``` Create the XML dump from a Joomla! SQL file.
+* ```--create``` Create the XML dump from a Joomla! SQL file.
