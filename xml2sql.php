@@ -11,7 +11,9 @@ ini_set('error_reporting', E_ALL | E_STRICT);
 /**
  * Bootstrap the Joomla! Platform.
  */
-require $_SERVER['JOOMLA_PLATFORM_PATH'].'/libraries/import.php';
+//require getenv('JOOMLA_PLATFORM_PATH').'/libraries/import.php';
+$myPlatform = '/home/elkuku/phpstormspace/debug4/joomla-platform';
+require $myPlatform.'/libraries/import.php';
 
 define('JPATH_BASE', dirname(__FILE__));
 define('JPATH_SITE', JPATH_BASE);
@@ -24,12 +26,15 @@ jimport('joomla.filesystem.folder');
 
 require 'formatter.php';
 
+//require_once getenv('JOOMLA_PLATFORM_PATH').'/libraries/joomla/database/database/mysqliexporter.php';
+require_once $myPlatform.'/libraries/joomla/database/database/mysqliexporter.php';
+
 JError::$legacy = false;
 
 /**
  * XML2SQL
  */
-class XML2SQL extends JCli
+class XML2SQL extends JApplicationCli
 {
     /**
      * @var Xml2SqlFormatter
@@ -49,6 +54,16 @@ class XML2SQL extends JCli
         $this->out('|   2011 by NiK (elkuku)  |');
         $this->out('|-------------------------|');
         $this->out();
+
+	    $this->dbOptions = array(
+		    'driver' => $this->get('dbtype', 'mysqli'),
+		    'host' => $this->get('host'),
+		    'user' => $this->get('user'),
+		    'password' => $this->get('password'),
+		    'database' => $this->get('db'),
+		    'prefix' => $this->get('dbprefix'),
+		    'select' => false,
+	    );
 
         if($this->input->get('create'))
         {
@@ -153,9 +168,7 @@ class XML2SQL extends JCli
 
     private function create()
     {
-        $config = JFactory::getConfig();
-
-        $jBase = $config->get('jbase');
+        $jBase = $this->get('jbase');
 
         $this->out('JBase:'.$jBase);
 
@@ -167,22 +180,13 @@ class XML2SQL extends JCli
 
         $this->out('Create db...', false);
 
-        $options = array(
-            'driver' => $config->get('dbtype', 'mysqli'),
-            'host' => $config->get('host'),
-            'user' => $config->get('user'),
-            'password' => $config->get('password'),
-            'database' => $config->get('db'),
-            'prefix' => $config->get('dbprefix'),
-            'select' => false,
-        );
+        $db = JDatabase::getInstance($this->dbOptions);
 
-        $db = JDatabase::getInstance($options);
+	    $db->setQuery('DROP DATABASE IF EXISTS '.$this->get('db'))->query();
 
-        $query = $db->getQuery(true);
+        $db->setQuery('CREATE DATABASE '.$this->get('db'))->query();
 
-        $db->setQuery('CREATE DATABASE '.$config->get('db'))->query();
-        $db->setQuery('USE '.$config->get('db'))->query();
+        $db->setQuery('USE '.$this->get('db'))->query();
 
         $this->out('ok');
 
@@ -219,18 +223,41 @@ class XML2SQL extends JCli
 
         $this->out('dump db to XML...', false);
 
+	    $this->dbOptions['select'] = true;
+
+	    $tables = $db->getTableList();
+
+	    $exporter = new JDatabaseExporterMySQLi;
+
+	    $contents = (string)$exporter->setDbo($db)->from($tables)->withData()->asXml();
+
+	    if( ! JFile::write(JPATH_BASE.'/xml2sql-created.xml', $contents))
+		    throw new Exception('Can not write output file to: '.JPATH_BASE.'/xml2sql-created.xml');
+
+	    $this->out('ok');
+
+	    $this->out('delete db...', false);
+
+	    $db->setQuery('DROP DATABASE '.$this->get('db'))->query();
+
+	    $this->out('ok');
+
+	    return $this;
+
+	    /*
+
         $connData = '';
 
-        $connData .= ' -u '.$config->get('user');
-        $connData .= ' -h '.$config->get('host');
+        $connData .= ' -u '.$this->get('user');
+        $connData .= ' -h '.$this->get('host');
 
-        if($config->get('password'))
+        if($this->get('password'))
         $connData .= ' -p '.$config->get('password');
 
-        $connection = $config->get('mysqlpath').'/mysqldump --xml '.$connData;
+        $connection = $this->get('mysqlpath').'/mysqldump --xml '.$connData;
 
         $cmd = $connection
-        .' '.$config->get('db')
+        .' '.$this->get('db')
         .' > xml2sql-created.xml';
 
         echo shell_exec($cmd);
@@ -239,9 +266,10 @@ class XML2SQL extends JCli
 
         $this->out('delete db...', false);
 
-        $db->setQuery('DROP DATABASE '.$config->get('db'))->query();
+        $db->setQuery('DROP DATABASE '.$this->get('db'))->query();
 
         $this->out('ok');
+	    */
     }
 
 }//class
@@ -249,7 +277,7 @@ class XML2SQL extends JCli
 try
 {
     // Execute the application.
-    JCli::getInstance('XML2SQL')->execute();
+    JApplicationCli::getInstance('XML2SQL')->execute();
 
     exit(0);
 }

@@ -101,12 +101,15 @@ class Xml2SqlFormatMySQL extends Xml2SqlFormatter
             .' ('.$this->quote(implode($this->quoteString.','.$this->quoteString, $columns)).'),';
         }//foreach
 
-        $collation = (string)$create->options->attributes()->Collation;
+	    /*
+	    $collation = (string)$create->options->attributes()->Collation;
 
-        $collation =($collation) ? ' DEFAULT CHARSET='.$collation : '';
+	    $collation =($collation) ? ' DEFAULT CHARSET='.$collation : '';
 
-        $s[] = ')'.$collation.';';
+	    $s[] = ')'.$collation.';';
+	     */
 
+	    $s[] = ');';
         $s[] = '';
 
         return implode("\n", $s);

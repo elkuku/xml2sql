@@ -15,5 +15,5 @@ class JConfig
     public $dbprefix = '#__';
 
     /* Path to MySQL bin folder - empty for system default */
-    public $mysqlpath = '/opt/lampp/bin';
+    //public $mysqlpath = '/opt/lampp/bin';
 }

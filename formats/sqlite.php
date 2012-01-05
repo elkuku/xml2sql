@@ -35,9 +35,9 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
 
             $as = array();
 
-            $as[] = $attribs->Field;
+            $as[] = (string)$attribs->Field;
 
-            $type = $attribs->Type;
+            $type = (string)$attribs->Type;
 
             $type = str_replace(' unsigned', '', $type);
 

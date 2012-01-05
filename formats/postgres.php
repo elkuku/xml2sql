@@ -19,6 +19,7 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
         $s = array();
 
         $s[] = '';
+	    $s[] = '';
         $s[] = '-- Table structure for table '.$tableName;
         $s[] = '';
 
@@ -86,7 +87,6 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
                 }
             }
 
-
             $f = '';
 
             if((string)$attribs->Comment)
@@ -138,11 +138,16 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
             $s[] = 'KEY '.$this->quote($kName).' ('.$this->quote(implode($this->quoteString.','.$this->quoteString, $columns)).'),';
         }//foreach
 
-        $collation = (string)$create->options->attributes()->Collation;
 
-        $collation =($collation) ? ' DEFAULT CHARSET='.$collation : '';
+        /*
+	    $collation = (string)$create->options->attributes()->Collation;
 
-        $s[] = ')'.$collation.';';
+	    $collation =($collation) ? ' DEFAULT CHARSET='.$collation : '';
+
+	    $s[] = ')'.$collation.';';
+         */
+
+	    $s[] = ');';
 
         $s[] = '';
 
