@@ -43,10 +43,6 @@ class XML2SQL extends JCli
      */
     public function execute()
     {
-        $input = $this->input->get('i', '', 'string');
-        $output = $this->input->get('o', '', 'string');
-        $format = $this->input->get('format');
-
         $this->out('|-------------------------|');
         $this->out('|          XML2SQL        |');
         $this->out('|                         |');
@@ -57,11 +53,8 @@ class XML2SQL extends JCli
         if($this->input->get('create'))
         {
             $this->create();
-            $input = 'xml2sql-created.xml';
-            $output = 'xml2sql-created.'.$format.'.sql';
         }
-
-        if($this->input->get('createall'))
+        elseif($this->input->get('createall'))
         {
             $this->create();
 
@@ -77,7 +70,15 @@ class XML2SQL extends JCli
                 $output = 'xml2sql-created.'.$format.'.sql';
 
                 $this->createSql($input, $output, $format);
-            }
+            }//foreach
+        }
+        else
+        {
+            $input = $this->input->get('i', '', 'string');
+            $output = $this->input->get('o', '', 'string');
+            $format = $this->input->get('format');
+
+            $this->createSql($input, $output, $format);
         }
 
         $this->out();
@@ -111,7 +112,7 @@ class XML2SQL extends JCli
         $prefix = $this->input->get('prefix', 'xxxxx_');
 
         $options = array(
-			'prefix' => $prefix,
+            'prefix' => $prefix,
         );
 
         $this->formatter = new $className($options);
@@ -189,6 +190,12 @@ class XML2SQL extends JCli
 
         $sql = JFile::read($jBase.'/installation/sql/mysql/joomla.sql');
 
+        if($this->input->get('sampledata'))
+        {
+            $this->out('with sample data...', false);
+            $sql .= JFile::read($jBase.'/installation/sql/mysql/sample_data.sql');
+        }
+
         $queries = $db->splitSql($sql);
 
         $this->out(sprintf('Found %d queries...', count($queries)), false);
@@ -197,6 +204,11 @@ class XML2SQL extends JCli
         {
             if($i && $i / 10 == floor($i / 10))
             $this->out($i.'...', false);
+
+            $query = trim($query);
+
+            if( ! $query)
+            continue;
 
             $db->setQuery($query)->query();
         }
