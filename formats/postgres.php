@@ -189,6 +189,7 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
         foreach ($insert->row as $row)
         {
             $vs = array();
+
             foreach ($row->field as $field)
             {
                 $f = (string) $field;
@@ -210,5 +211,16 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
 
         return implode("\n", $s);
     }//function
+
+	/**
+	 * (non-PHPdoc)
+	 * @see Xml2SqlFormatter::formatTruncate()
+	 */
+	public function formatTruncate(SimpleXMLElement $tableStructure)
+	{
+		$tableName = str_replace($this->options->get('prefix'), '#__', (string)$tableStructure->attributes()->name);
+
+		return 'TRUNCATE TABLE '.$tableName.";\n";
+	}
 
 }//class

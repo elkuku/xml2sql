@@ -167,4 +167,15 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
         return implode("\n", $s);
     }//function
 
+	/**
+	 * (non-PHPdoc)
+	 * @see Xml2SqlFormatter::formatTruncate()
+	 */
+	public function formatTruncate(SimpleXMLElement $tableStructure)
+	{
+		$tableName = str_replace($this->options->get('prefix'), '#__', (string)$tableStructure->attributes()->name);
+
+		return 'DELETE FROM '.$tableName.";\n";
+	}
+
 }//class
