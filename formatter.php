@@ -25,7 +25,7 @@ abstract class Xml2SqlFormatter
      *
      * @return string Formatted SQL statement
      */
-    abstract public function formatCreate(SimpleXMLElement $create);
+    abstract public function formatCreate(SimpleXMLElement $tableStructure);
 
     /**
      * Format a SQL INSERT statement
@@ -34,7 +34,16 @@ abstract class Xml2SqlFormatter
      *
      * @return string Formatted SQL statement
      */
-    abstract public function formatInsert(SimpleXMLElement $insert);
+    abstract public function formatInsert(SimpleXMLElement $tableData);
+
+	/**
+	 * Format a SQL TRUNCATE TABLE statement
+	 *
+	 * @param SimpleXMLElement $insert The INSERT block
+	 *
+	 * @return string Formatted SQL statement
+	 */
+	abstract public function formatTruncate(SimpleXMLElement $tableStructure);
 
     /**
      * Quote a string.

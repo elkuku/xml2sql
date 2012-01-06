@@ -55,15 +55,17 @@ class XML2SQL extends JApplicationCli
         $this->out('|-------------------------|');
         $this->out();
 
-	    $this->dbOptions = array(
-		    'driver' => $this->get('dbtype', 'mysqli'),
-		    'host' => $this->get('host'),
-		    'user' => $this->get('user'),
-		    'password' => $this->get('password'),
-		    'database' => $this->get('db'),
-		    'prefix' => $this->get('dbprefix'),
-		    'select' => false,
-	    );
+        $this->dbOptions = array(
+            'driver' => $this->get('dbtype', 'mysqli'),
+            'host' => $this->get('host'),
+            'user' => $this->get('user'),
+            'password' => $this->get('password'),
+            'database' => $this->get('db'),
+            'prefix' => $this->get('dbprefix'),
+            'select' => false,
+        );
+
+	    $sampleData =($this->input->get('sampledata')) ? '.sampledata' : '';
 
         if($this->input->get('create'))
         {
@@ -82,7 +84,7 @@ class XML2SQL extends JApplicationCli
 
                 $format = $fInfo->getBasename('.php');
 
-                $output = 'xml2sql-created.'.$format.'.sql';
+                $output = 'xml2sql-created.'.$format.$sampleData.'.sql';
 
                 $this->createSql($input, $output, $format);
             }//foreach
@@ -140,14 +142,28 @@ class XML2SQL extends JApplicationCli
         $sql = '';
         $cnt = 0;
 
-        //-- Process "CREATE TABLE" stanetments
-        foreach ($xml->database->table_structure as $create)
+        if($this->input->get('sampledata'))
         {
-            $sql .= $this->formatter->formatCreate($create);
-            $cnt ++;
-        }//foreach
+            // To install the sample data, first we empty all the tables
+            foreach ($xml->database->table_structure as $tableStructure)
+            {
+                $sql .= $this->formatter->formatTruncate($tableStructure);
+                $cnt ++;
+            }//foreach
 
-        $this->out(sprintf('Processed %d create queries.', $cnt));
+            $this->out(sprintf('Processed %d truncate table queries.', $cnt));
+        }
+        else
+        {
+            //-- Process "CREATE TABLE" stanetments
+            foreach ($xml->database->table_structure as $create)
+            {
+                $sql .= $this->formatter->formatCreate($create);
+                $cnt ++;
+            }//foreach
+
+            $this->out(sprintf('Processed %d create queries.', $cnt));
+        }
 
         $cnt = 0;
 
@@ -182,7 +198,7 @@ class XML2SQL extends JApplicationCli
 
         $db = JDatabase::getInstance($this->dbOptions);
 
-	    $db->setQuery('DROP DATABASE IF EXISTS '.$this->get('db'))->query();
+        $db->setQuery('DROP DATABASE IF EXISTS '.$this->get('db'))->query();
 
         $db->setQuery('CREATE DATABASE '.$this->get('db'))->query();
 
@@ -223,28 +239,28 @@ class XML2SQL extends JApplicationCli
 
         $this->out('dump db to XML...', false);
 
-	    $this->dbOptions['select'] = true;
+        $this->dbOptions['select'] = true;
 
-	    $tables = $db->getTableList();
+        $tables = $db->getTableList();
 
-	    $exporter = new JDatabaseExporterMySQLi;
+        $exporter = new JDatabaseExporterMySQLi;
 
-	    $contents = (string)$exporter->setDbo($db)->from($tables)->withData()->asXml();
+        $contents = (string)$exporter->setDbo($db)->from($tables)->withData()->asXml();
+$contents = (string)$db->getExporter()->from($db->getTableList())->withData();
+        if( ! JFile::write(JPATH_BASE.'/xml2sql-created.xml', $contents))
+            throw new Exception('Can not write output file to: '.JPATH_BASE.'/xml2sql-created.xml');
 
-	    if( ! JFile::write(JPATH_BASE.'/xml2sql-created.xml', $contents))
-		    throw new Exception('Can not write output file to: '.JPATH_BASE.'/xml2sql-created.xml');
+        $this->out('ok');
 
-	    $this->out('ok');
+        $this->out('delete db...', false);
 
-	    $this->out('delete db...', false);
+        $db->setQuery('DROP DATABASE '.$this->get('db'))->query();
 
-	    $db->setQuery('DROP DATABASE '.$this->get('db'))->query();
+        $this->out('ok');
 
-	    $this->out('ok');
+        return $this;
 
-	    return $this;
-
-	    /*
+        /*
 
         $connData = '';
 
@@ -269,7 +285,7 @@ class XML2SQL extends JApplicationCli
         $db->setQuery('DROP DATABASE '.$this->get('db'))->query();
 
         $this->out('ok');
-	    */
+        */
     }
 
 }//class
