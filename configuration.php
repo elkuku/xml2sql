@@ -2,7 +2,7 @@
 class JConfig
 {
     /* The script will search in this path for the file installation/sql/mysql/joomla.sql */
-    public $jbase = '/home/elkuku/eclipsespace/indigogit3/joomla-cms-git-1';
+    public $jbase = '/home/jtester/repos/joomla-cms-sqlite';
 
     /* Credentials of a database user allowed to create dbs */
     public $host = 'localhost';
