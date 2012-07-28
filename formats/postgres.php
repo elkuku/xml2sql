@@ -19,7 +19,7 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
         $s = array();
 
         $s[] = '';
-	    $s[] = '';
+        $s[] = '';
         $s[] = '-- Table structure for table '.$tableName;
         $s[] = '';
 
@@ -119,6 +119,8 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
 
         $s[] = implode(",\n", $fields);
 
+        $s[] = ',';
+
         if($primaries)
         $s[] = 'PRIMARY KEY ('.$this->quote(implode($this->quoteString.','.$this->quoteString, $primaries)).'),';
 
@@ -140,14 +142,14 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
 
 
         /*
-	    $collation = (string)$create->options->attributes()->Collation;
+        $collation = (string)$create->options->attributes()->Collation;
 
-	    $collation =($collation) ? ' DEFAULT CHARSET='.$collation : '';
+        $collation =($collation) ? ' DEFAULT CHARSET='.$collation : '';
 
-	    $s[] = ')'.$collation.';';
+        $s[] = ')'.$collation.';';
          */
 
-	    $s[] = ');';
+        $s[] = ');';
 
         $s[] = '';
 
@@ -212,15 +214,15 @@ class Xml2SqlFormatPostgres extends Xml2SqlFormatter
         return implode("\n", $s);
     }//function
 
-	/**
-	 * (non-PHPdoc)
-	 * @see Xml2SqlFormatter::formatTruncate()
-	 */
-	public function formatTruncate(SimpleXMLElement $tableStructure)
-	{
-		$tableName = str_replace($this->options->get('prefix'), '#__', (string)$tableStructure->attributes()->name);
+    /**
+     * (non-PHPdoc)
+     * @see Xml2SqlFormatter::formatTruncate()
+     */
+    public function formatTruncate(SimpleXMLElement $tableStructure)
+    {
+        $tableName = str_replace($this->options->get('prefix'), '#__', (string)$tableStructure->attributes()->name);
 
-		return 'TRUNCATE TABLE '.$tableName.";\n";
-	}
+        return 'TRUNCATE TABLE '.$tableName.";\n";
+    }
 
 }//class

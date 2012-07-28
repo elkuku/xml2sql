@@ -65,7 +65,7 @@ class XML2SQL extends JApplicationCli
             'select' => false,
         );
 
-	    $sampleData =($this->input->get('sampledata')) ? '.sampledata' : '';
+        $sampleData =($this->input->get('sampledata')) ? '.sampledata' : '';
 
         if($this->input->get('create'))
         {
