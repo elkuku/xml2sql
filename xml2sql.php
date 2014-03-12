@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 define('_JEXEC', 1);
 
@@ -11,9 +11,9 @@ ini_set('error_reporting', E_ALL | E_STRICT);
 /**
  * Bootstrap the Joomla! Platform.
  */
-//require getenv('JOOMLA_PLATFORM_PATH').'/libraries/import.php';
-$myPlatform = '/home/elkuku/phpstormspace/debug4/joomla-platform';
-require $myPlatform.'/libraries/import.php';
+require getenv('JOOMLA_PLATFORM_PATH').'/libraries/import.php';
+//$myPlatform = '/home/elkuku/phpstormspace/debug4/joomla-platform';
+//require $myPlatform.'/libraries/import.php';
 
 define('JPATH_BASE', dirname(__FILE__));
 define('JPATH_SITE', JPATH_BASE);
@@ -27,9 +27,10 @@ jimport('joomla.filesystem.folder');
 require 'formatter.php';
 
 //require_once getenv('JOOMLA_PLATFORM_PATH').'/libraries/joomla/database/database/mysqliexporter.php';
-require_once $myPlatform.'/libraries/joomla/database/database/mysqliexporter.php';
+//require_once $myPlatform.'/libraries/joomla/database/database/mysqliexporter.php';
+require_once 'mysqliexporter.php';
 
-JError::$legacy = false;
+//JError::$legacy = false;
 
 /**
  * XML2SQL
@@ -65,7 +66,7 @@ class XML2SQL extends JApplicationCli
             'select' => false,
         );
 
-	    $sampleData =($this->input->get('sampledata')) ? '.sampledata' : '';
+        $sampleData =($this->input->get('sampledata')) ? '.sampledata' : '';
 
         if($this->input->get('create'))
         {
@@ -243,9 +244,9 @@ class XML2SQL extends JApplicationCli
 
         $tables = $db->getTableList();
 
-        $exporter = new JDatabaseExporterMySQLi;
+        $exporter = new JDatabaseExporterMysqli;
 
-        $contents = (string)$exporter->setDbo($db)->from($tables)->withData()->asXml();
+     //   $contents = (string)$exporter->setDbo($db)->from($tables)->withData()->asXml();
 $contents = (string)$db->getExporter()->from($db->getTableList())->withData();
         if( ! JFile::write(JPATH_BASE.'/xml2sql-created.xml', $contents))
             throw new Exception('Can not write output file to: '.JPATH_BASE.'/xml2sql-created.xml');
