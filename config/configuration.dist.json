@@ -1,0 +1,8 @@
+{
+	"jbase": "/path/to/joomla/cms",
+	"host": "localhost",
+	"user": "root",
+	"password": "",
+	"db": "testdatabase",
+	"dbprefix": "#__"
+}

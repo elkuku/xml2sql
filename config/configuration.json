@@ -1,8 +1,0 @@
-{
-	"jbase": "/home/elkuku/repos/joomla-cms-sqlite",
-	"host": "localhost",
-	"user": "root",
-	"password": "toor",
-	"db": "aaatestdb",
-	"dbprefix": "#__"
-}
