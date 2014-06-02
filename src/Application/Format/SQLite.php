@@ -1,10 +1,13 @@
 <?php
+
+namespace Application\Format;
+
 /**
  * Format XML database dumps to SQLite format.
  *
  * @link http://www.sqlite.org/datatype3.html
  */
-class Xml2SqlFormatSQLite extends Xml2SqlFormatter
+class SQLite extends Formatter
 {
     protected $quoteString = '';
 
@@ -12,7 +15,7 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
      * (non-PHPdoc)
      * @see Xml2SqlFormatter::formatCreate()
      */
-    public function formatCreate(SimpleXMLElement $create)
+    public function formatCreate(\SimpleXMLElement $create)
     {
         $tableName = (string)$create->attributes()->name;
 
@@ -110,7 +113,7 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
      * (non-PHPdoc)
      * @see Xml2SqlFormatter::formatInsert()
      */
-    public function formatInsert(SimpleXMLElement $insert)
+    public function formatInsert(\SimpleXMLElement $insert)
     {
         if( ! isset($insert->row->field))
         return '';
@@ -171,7 +174,7 @@ class Xml2SqlFormatSQLite extends Xml2SqlFormatter
 	 * (non-PHPdoc)
 	 * @see Xml2SqlFormatter::formatTruncate()
 	 */
-	public function formatTruncate(SimpleXMLElement $tableStructure)
+	public function formatTruncate(\SimpleXMLElement $tableStructure)
 	{
 		$tableName = str_replace($this->options->get('prefix'), '#__', (string)$tableStructure->attributes()->name);
 

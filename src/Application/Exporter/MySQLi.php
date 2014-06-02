@@ -7,7 +7,10 @@
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
-defined('JPATH_PLATFORM') or die;
+namespace Application\Exporter;
+
+use Joomla\Database\Mysqli\MysqliDriver;
+use Joomla\Registry\Registry;
 
 /**
  * MySQL export driver.
@@ -16,7 +19,7 @@ defined('JPATH_PLATFORM') or die;
  * @subpackage  Database
  * @since       11.1
  */
-class JDatabaseExporterMySQLi
+class MySQLi
 {
 	/**
 	 * An array of cached data.
@@ -29,7 +32,7 @@ class JDatabaseExporterMySQLi
 	/**
 	 * The database connector to use for exporting structure and/or data.
 	 *
-	 * @var    JDatabaseMySQL
+	 * @var    MysqliDriver
 	 * @since  11.1
 	 */
 	protected $db = null;
@@ -53,7 +56,7 @@ class JDatabaseExporterMySQLi
 	/**
 	 * An array of options for the exporter.
 	 *
-	 * @var    JObject
+	 * @var    Registry
 	 * @since  11.1
 	 */
 	protected $options = null;
@@ -67,7 +70,7 @@ class JDatabaseExporterMySQLi
 	 */
 	public function __construct()
 	{
-		$this->options = new JObject;
+		$this->options = new Registry;
 
 		$this->cache = array('columns' => array(), 'keys' => array());
 
@@ -96,8 +99,6 @@ class JDatabaseExporterMySQLi
 			// Check everything is ok to run first.
 			$this->check();
 
-			$buffer = '';
-
 			// Get the format.
 			switch ($this->asFormat)
 			{
@@ -107,7 +108,7 @@ class JDatabaseExporterMySQLi
 					break;
 			}
 		}
-		catch (Exception $e)
+		catch (\Exception $e)
 		{
 			$buffer = $e->getMessage();
 		}
@@ -118,7 +119,7 @@ class JDatabaseExporterMySQLi
 	/**
 	 * Set the output option for the exporter to XML format.
 	 *
-	 * @return  JDatabaseExporterMySQL  Method supports chaining.
+	 * @return  $this
 	 *
 	 * @since   11.1
 	 */
@@ -135,7 +136,7 @@ class JDatabaseExporterMySQLi
 	 * @return  string  An XML string
 	 *
 	 * @since   11.1
-	 * @throws  Exception if an error occurs.
+	 * @throws  \Exception
 	 */
 	protected function buildXml()
 	{
@@ -159,7 +160,7 @@ class JDatabaseExporterMySQLi
 	 * @return  array  An array of XML lines (strings).
 	 *
 	 * @since   11.1
-	 * @throws  Exception if an error occurs.
+	 * @throws  \Exception if an error occurs.
 	 */
 	protected function buildXmlStructure()
 	{
@@ -253,24 +254,24 @@ class JDatabaseExporterMySQLi
 	/**
 	 * Checks if all data and options are in order prior to exporting.
 	 *
-	 * @return  JDatabaseExporterMySQL  Method supports chaining.
+	 * @return  $this
 	 *
 	 * @since   11.1
 	 *
-	 * @throws  Exception if an error is encountered.
+	 * @throws  \Exception
 	 */
 	public function check()
 	{
 		// Check if the db connector has been set.
-		if (!($this->db instanceof JDatabaseDriverMysqli))
+		if (!($this->db instanceof MysqliDriver))
 		{
-			throw new Exception('JPLATFORM_ERROR_DATABASE_CONNECTOR_WRONG_TYPE');
+			throw new \Exception('JPLATFORM_ERROR_DATABASE_CONNECTOR_WRONG_TYPE');
 		}
 
 		// Check if the tables have been specified.
 		if (empty($this->from))
 		{
-			throw new Exception('JPLATFORM_ERROR_NO_TABLES_SPECIFIED');
+			throw new \Exception('JPLATFORM_ERROR_NO_TABLES_SPECIFIED');
 		}
 
 		return $this;
@@ -299,12 +300,12 @@ class JDatabaseExporterMySQLi
 	/**
 	 * Specifies a list of table names to export.
 	 *
-	 * @param   mixed  $from  The name of a single table, or an array of the table names to export.
+	 * @param   mixed $from The name of a single table, or an array of the table names to export.
 	 *
-	 * @return  JDatabaseExporterMySQL  Method supports chaining.
+	 * @throws \Exception
+	 * @return  $this
 	 *
 	 * @since   11.1
-	 * @throws  Exception if input is not a string or array.
 	 */
 	public function from($from)
 	{
@@ -318,7 +319,7 @@ class JDatabaseExporterMySQLi
 		}
 		else
 		{
-			throw new Exception('JPLATFORM_ERROR_INPUT_REQUIRES_STRING_OR_ARRAY');
+			throw new \Exception('JPLATFORM_ERROR_INPUT_REQUIRES_STRING_OR_ARRAY');
 		}
 
 		return $this;
@@ -327,13 +328,13 @@ class JDatabaseExporterMySQLi
 	/**
 	 * Sets the database connector to use for exporting structure and/or data from MySQL.
 	 *
-	 * @param   JDatabaseMySQL  $db  The database connector.
+	 * @param   MysqliDriver  $db  The database connector.
 	 *
-	 * @return  JDatabaseExporterMySQL  Method supports chaining.
+	 * @return  $this
 	 *
 	 * @since   11.1
 	 */
-	public function setDbo(JDatabaseDriverMysqli $db)
+	public function setDbo(MysqliDriver $db)
 	{
 		$this->db = $db;
 
@@ -345,7 +346,7 @@ class JDatabaseExporterMySQLi
 	 *
 	 * @param   boolean  $setting  True to export the structure, false to not.
 	 *
-	 * @return  JDatabaseExporterMySQL  Method supports chaining.
+	 * @return  $this
 	 *
 	 * @since   11.1
 	 */
@@ -361,7 +362,7 @@ class JDatabaseExporterMySQLi
 	 *
 	 * @param   boolean  $setting  True to export the data, false to not.
 	 *
-	 * @return  JDatabaseExporterMySQL  Method supports chaining.
+	 * @return  $this
 	 *
 	 * @since   12.1
 	 */

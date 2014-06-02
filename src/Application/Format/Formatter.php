@@ -1,8 +1,13 @@
 <?php
-abstract class Xml2SqlFormatter
+
+namespace Application\Format;
+
+use Joomla\Registry\Registry;
+
+abstract class Formatter
 {
     /**
-     * @var JRegistry
+     * @var Registry
      */
     protected $options;
 
@@ -15,35 +20,35 @@ abstract class Xml2SqlFormatter
      */
     public function __construct(array $options = array())
     {
-        $this->options = new JRegistry($options);
+        $this->options = new Registry($options);
     }//function
 
     /**
      * Format a SQL CREATE TABLE statement
      *
-     * @param SimpleXMLElement $create The CREATE TABLE block
+     * @param \SimpleXMLElement $create The CREATE TABLE block
      *
      * @return string Formatted SQL statement
      */
-    abstract public function formatCreate(SimpleXMLElement $tableStructure);
+    abstract public function formatCreate(\SimpleXMLElement $tableStructure);
 
     /**
      * Format a SQL INSERT statement
      *
-     * @param SimpleXMLElement $insert The INSERT block
+     * @param \SimpleXMLElement $insert The INSERT block
      *
      * @return string Formatted SQL statement
      */
-    abstract public function formatInsert(SimpleXMLElement $tableData);
+    abstract public function formatInsert(\SimpleXMLElement $tableData);
 
 	/**
 	 * Format a SQL TRUNCATE TABLE statement
 	 *
-	 * @param SimpleXMLElement $insert The INSERT block
+	 * @param \SimpleXMLElement $insert The INSERT block
 	 *
 	 * @return string Formatted SQL statement
 	 */
-	abstract public function formatTruncate(SimpleXMLElement $tableStructure);
+	abstract public function formatTruncate(\SimpleXMLElement $tableStructure);
 
     /**
      * Quote a string.
@@ -56,4 +61,4 @@ abstract class Xml2SqlFormatter
     {
         return $this->quoteString.$string.$this->quoteString;
     }
-}//class
+}
