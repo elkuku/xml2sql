@@ -1,0 +1,17 @@
+{
+    "name": "elkuku/xml2sql",
+    "description": "Converts XML files to SQL in different formats",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nikolai Plath",
+            "email": "der.el.kuku@gmail.com"
+        }
+    ],
+    "require": {
+		"php": ">=5.4.4",
+		"joomla/application": "~1.0",
+		"joomla/filesystem": "~1.0",
+		"joomla/database": "~1.0"
+    }
+}
