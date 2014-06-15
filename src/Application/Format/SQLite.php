@@ -106,6 +106,7 @@ class SQLite extends Formatter
         $s = array();
 
         $s[] = '';
+        $s[] = '';
         $s[] = '-- Table structure for table '.$tableName;
         $s[] = '';
         $s[] = 'CREATE TABLE IF NOT EXISTS '.$tableName.' (';
@@ -138,6 +139,7 @@ class SQLite extends Formatter
 
         $s = array();
 
+        $s[] = '';
         $s[] = '';
         $s[] = '-- Table data for table '.$tableName;
         $s[] = '';
