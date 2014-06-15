@@ -11,6 +11,8 @@ class SQLite extends Formatter
 {
     protected $quoteString = '';
 
+	protected $reserved = ['table'];
+
     /**
      * (non-PHPdoc)
      * @see Xml2SqlFormatter::formatCreate()
@@ -38,7 +40,7 @@ class SQLite extends Formatter
 
             $as = array();
 
-            $as[] = (string)$attribs->Field;
+            $as[] = $this->checkReserved((string)$attribs->Field);
 
             $type = (string)$attribs->Type;
 
@@ -61,8 +63,8 @@ class SQLite extends Formatter
 
                             continue 2;
                         }
-                    }//foreach
-                }//foreach
+                    }
+                }
             }
 
             if( ! $affinity)
@@ -89,13 +91,17 @@ class SQLite extends Formatter
             $default = (string) $attribs->Default;
 
             if('' != $default)
-            $as[] = "DEFAULT '$default'";
+            {
+	            $as[] = "DEFAULT '$default'";
+            }
 
             if('auto_increment' == (string)$attribs->Extra)
-            $as[] = 'AUTOINCREMENT';
+            {
+	            $as[] = 'AUTOINCREMENT';
+            }
 
             $fields[] = implode(' ', $as);
-        }//foreach
+        }
 
         $s = array();
 
@@ -107,7 +113,7 @@ class SQLite extends Formatter
         $s[] = ');';
 
         return implode("\n", $s);
-    }//function
+    }
 
     /**
      * (non-PHPdoc)
@@ -128,7 +134,7 @@ class SQLite extends Formatter
         foreach ($insert->row->field as $field)
         {
             $keys[] = (string) $field->attributes()->name;
-        }//foreach
+        }
 
         $s = array();
 
@@ -150,8 +156,8 @@ class SQLite extends Formatter
                 // ''escape'' single quotes by prefixing them with another single quote
                 $f = str_replace("'", "''", (string) $field);
 
-                $vs[] =($started) ? "'".$f."'" : "'".$f."' AS ".$keys[$i++];
-            }//foreach
+                $vs[] =($started) ? "'". $f ."'" : "'" .$f . "' AS " . $this->checkReserved($keys[$i++]);
+            }
 
             if( ! $started)
             {
@@ -163,12 +169,12 @@ class SQLite extends Formatter
             }
 
             $started = true;
-        }//foreach
+        }
 
         $s[] = ';';
 
         return implode("\n", $s);
-    }//function
+    }
 
 	/**
 	 * (non-PHPdoc)
@@ -181,4 +187,15 @@ class SQLite extends Formatter
 		return 'DELETE FROM '.$tableName.";\n";
 	}
 
-}//class
+	/**
+	 * Check if the name is "reserved" for the db engine.
+	 *
+	 * @param   string  $name  The field name to check.
+	 *
+	 * @return string
+	 */
+	protected function checkReserved($name)
+	{
+		return (in_array($name, $this->reserved)) ? "'$name'" : $name;
+	}
+}
