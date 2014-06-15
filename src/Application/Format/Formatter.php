@@ -13,6 +13,8 @@ abstract class Formatter
 
     protected $quoteString = '';
 
+	protected $reserved = [];
+
     /**
      * Constructor.
      *
@@ -21,12 +23,12 @@ abstract class Formatter
     public function __construct(array $options = array())
     {
         $this->options = new Registry($options);
-    }//function
+    }
 
     /**
      * Format a SQL CREATE TABLE statement
      *
-     * @param \SimpleXMLElement $create The CREATE TABLE block
+     * @param \SimpleXMLElement $tableStructure The CREATE TABLE block
      *
      * @return string Formatted SQL statement
      */
@@ -35,16 +37,16 @@ abstract class Formatter
     /**
      * Format a SQL INSERT statement
      *
-     * @param \SimpleXMLElement $insert The INSERT block
+     * @param \SimpleXMLElement $tableStructure The INSERT block
      *
      * @return string Formatted SQL statement
      */
-    abstract public function formatInsert(\SimpleXMLElement $tableData);
+    abstract public function formatInsert(\SimpleXMLElement $tableStructure);
 
 	/**
 	 * Format a SQL TRUNCATE TABLE statement
 	 *
-	 * @param \SimpleXMLElement $insert The INSERT block
+	 * @param \SimpleXMLElement $tableStructure The TRUNCATE block
 	 *
 	 * @return string Formatted SQL statement
 	 */

@@ -9,8 +9,7 @@
 namespace Application;
 
 use Application\Exporter\MySQLi as MySQLiExporter;
-
-use Format\Formatter;
+use Application\Format\Formatter;
 
 use Joomla\Application\AbstractCliApplication;
 use Joomla\Database\DatabaseDriver;
@@ -135,29 +134,14 @@ class Application extends AbstractCliApplication
 		$this->out('Output: '.$output);
 		$this->out();
 
-		/* $path = JPATH_ROOT . '/formats/' . $format . '.php';
-
-		if( ! file_exists($path))
-		{
-			throw new \Exception('Format file not found: ' . $path, 1);
-		}
-
-		require $path;*/
-
 		$className = '\\Application\\Format\\' . $format;
 
 		if( ! class_exists($className))
 		{
-			throw new \Exception(sprintf('Required class "%1$s" not found in file %2$s', $className, $path), 1);
+			throw new \Exception(sprintf('Required class "%1$s" not found', $className), 1);
 		}
 
-		$prefix = $this->input->get('prefix', 'xxxxx_');
-
-		$options = array(
-			'prefix' => $prefix,
-		);
-
-		$this->formatter = new $className($options);
+		$this->formatter = new $className(['prefix' => $this->input->get('prefix', 'xxxxx_')]);
 
 		$xml = simplexml_load_file($input);
 
@@ -253,6 +237,8 @@ class Application extends AbstractCliApplication
 
 		$this->out(sprintf('Found %d queries...', count($queries)), false);
 
+		$i = 0;
+
 		foreach ($queries as $i => $query)
 		{
 			if($i && $i / 10 == floor($i / 10))
@@ -279,7 +265,6 @@ class Application extends AbstractCliApplication
 		$exporter = new MySQLiExporter;
 
 		$contents = (string)$exporter->setDbo($db)->from($tables)->withData()->asXml();
-		//$contents = (string)$db->getExporter()->from($db->getTableList())->withData();
 
 		if( ! File::write(JPATH_ROOT . '/build/xml2sql-created.xml', $contents))
 		{
@@ -295,33 +280,5 @@ class Application extends AbstractCliApplication
 		$this->out('ok');
 
 		return $this;
-
-		/*
-
-		$connData = '';
-
-		$connData .= ' -u '.$this->get('user');
-		$connData .= ' -h '.$this->get('host');
-
-		if($this->get('password'))
-		$connData .= ' -p '.$config->get('password');
-
-		$connection = $this->get('mysqlpath').'/mysqldump --xml '.$connData;
-
-		$cmd = $connection
-		.' '.$this->get('db')
-		.' > xml2sql-created.xml';
-
-		echo shell_exec($cmd);
-
-		$this->out('ok');
-
-		$this->out('delete db...', false);
-
-		$db->setQuery('DROP DATABASE '.$this->get('db'))->query();
-
-		$this->out('ok');
-		*/
 	}
-
 }
